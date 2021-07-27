@@ -1050,4 +1050,20 @@ describe('online syncing', function () {
     expect(note.payload.updated_at_timestamp).to.be.ok;
     expect(note.payload.updated_at).to.be.ok;
   });
+
+  it.only('after registering and completing only the DownloadFirst sync and then subsequent syncs completes, we should not be out of sync', async function () {
+    const application = await Factory.createInitAppWithRandNamespace();
+    const email = Uuid.GenerateUuidSynchronously();
+    const password = Uuid.GenerateUuidSynchronously();
+    await Factory.registerUserToApplication({
+      application: application,
+      email: email,
+      password: password,
+    });
+    await application.syncService.sync({ mode: SyncModes.DownloadFirst });
+    expect(application.isOutOfSync()).to.be.false;
+    await Factory.createSyncedNote(application);
+    await application.syncService.sync({ awaitAll: true });
+    expect(application.isOutOfSync()).to.be.false;
+  });
 });
